@@ -168,6 +168,14 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
+    V3F accelInertFrame = attitude.Rotate_BtoI(accel);
+    predictedState[0] += curState[3] * dt;
+    predictedState[1] += curState[4] * dt;
+    predictedState[2] += curState[5] * dt;
+
+    predictedState[3] += accelInertFrame.x * dt;
+    predictedState[4] += accelInertFrame.y * dt;
+    predictedState[5] += (accelInertFrame.z - static_cast<float>(CONST_GRAVITY)) * dt;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -194,7 +202,21 @@ MatrixXf QuadEstimatorEKF::GetRbgPrime(float roll, float pitch, float yaw)
   //   that your calculations are reasonable
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+    float sinPitch = sin(pitch);
+    float cosPitch = cos(pitch);
 
+    float sinRoll = sin(roll);
+    float cosRoll = cos(roll);
+
+    float sinYaw = sin(yaw);
+    float cosYaw = cos(yaw);
+
+    RbgPrime(0,0) = - cosPitch * sinYaw;
+    RbgPrime(0,1) = - sinRoll * sinPitch * sinYaw - cosRoll * cosYaw;
+    RbgPrime(0,2) = - cosRoll * sinPitch * sinYaw + sinRoll * cosYaw;
+    RbgPrime(1,0) = cosPitch * cosYaw;
+    RbgPrime(1,1) = sinRoll * sinPitch * cosYaw - cosRoll * sinYaw;
+    RbgPrime(1,2) = cosRoll * sinPitch * cosYaw + sinRoll * sinYaw;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -241,6 +263,15 @@ void QuadEstimatorEKF::Predict(float dt, V3F accel, V3F gyro)
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
+    gPrime(0,3) = dt;
+    gPrime(1,4) = dt;
+    gPrime(2,5) = dt;
+
+    gPrime(3,6) = (RbgPrime(0) * accel).sum() * dt;
+    gPrime(4,6) = (RbgPrime(1) * accel).sum() * dt;
+    gPrime(5,6) = (RbgPrime(2) * accel).sum() * dt;
+
+    ekfCov = gPrime * ekfCov * gPrime.transpose() + Q;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
