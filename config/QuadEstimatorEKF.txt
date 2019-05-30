@@ -7,7 +7,7 @@ InitStdDevs = .1, .1, .3, .1, .1, .3, .05
 
 QPosXYStd = .05
 QPosZStd = .05
-QVelXYStd = .15
+QVelXYStd = .15 # previous value: 0.05
 QVelZStd = .1
 QYawStd = 0.08 # previous value: 0.05
 
