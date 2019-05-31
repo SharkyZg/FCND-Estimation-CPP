@@ -103,9 +103,9 @@ void QuadEstimatorEKF::UpdateFromIMU(V3F accel, V3F gyro)
   float predictedRoll = bodyRateEst.Roll();
   ekfState(6) = bodyRateEst.Yaw();
 
-  // normalize yaw to -pi .. pi
-  if (ekfState(6) > F_PI) ekfState(6) -= 2.f*F_PI;
-  if (ekfState(6) < -F_PI) ekfState(6) += 2.f*F_PI;
+  // normalize yaw
+  if (ekfState(6) > F_PI) ekfState(6) -= 2.f * F_PI;
+  if (ekfState(6) < -F_PI) ekfState(6) += 2.f * F_PI;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -202,6 +202,7 @@ MatrixXf QuadEstimatorEKF::GetRbgPrime(float roll, float pitch, float yaw)
   //   that your calculations are reasonable
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+
     float sinPitch = sin(pitch);
     float cosPitch = cos(pitch);
 
@@ -266,7 +267,6 @@ void QuadEstimatorEKF::Predict(float dt, V3F accel, V3F gyro)
     gPrime(0,3) = dt;
     gPrime(1,4) = dt;
     gPrime(2,5) = dt;
-
     gPrime(3,6) = (RbgPrime(0) * accel).sum() * dt;
     gPrime(4,6) = (RbgPrime(1) * accel).sum() * dt;
     gPrime(5,6) = (RbgPrime(2) * accel).sum() * dt;
@@ -326,8 +326,8 @@ void QuadEstimatorEKF::UpdateFromMag(float magYaw)
     zFromX(0) = ekfState(6);
     float difference = magYaw - zFromX(0);
 
-    if (difference > F_PI) difference -= 2.f*F_PI;
-    if (difference < -F_PI) difference += 2.f*F_PI;
+    if (difference > F_PI) difference -= 2.f * F_PI;
+    if (difference < -F_PI) difference += 2.f * F_PI;
 
     zFromX(0) = magYaw - difference;
 
