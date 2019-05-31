@@ -41,7 +41,48 @@ The `UpdateFromIMU()` function has been implemented with the help of quaternions
 
 #### 3. Implementing all of the elements of the prediction step for the estimator
 
+The update step `PredictState()` has been implemented according to the `7.2 Transition Model` from the Estimation for Qadrotors paper provided by Udacity. The first step is to convert the attitude from the local to global frame. This has been achieved with the `Rotate_BtoI()` function called on the `Quaternion` object. 
 
+The next step is to update the `predictedState` vector for the time `dt` multiplied by the velocity contained in the `currState` vector. The velocity has been updated in the  `predictedState` vector by multiplying 
+
+```cpp
+    V3F accelInertFrame = attitude.Rotate_BtoI(accel);
+    predictedState[0] += curState[3] * dt;
+    predictedState[1] += curState[4] * dt;
+    predictedState[2] += curState[5] * dt;
+
+    predictedState[3] += accelInertFrame.x * dt;
+    predictedState[4] += accelInertFrame.y * dt;
+    predictedState[5] += (accelInertFrame.z - static_cast<float>(CONST_GRAVITY)) * dt;
+```
+```cpp
+    float sinPitch = sin(pitch);
+    float cosPitch = cos(pitch);
+
+    float sinRoll = sin(roll);
+    float cosRoll = cos(roll);
+
+    float sinYaw = sin(yaw);
+    float cosYaw = cos(yaw);
+
+    RbgPrime(0,0) = - cosPitch * sinYaw;
+    RbgPrime(0,1) = - sinRoll * sinPitch * sinYaw - cosRoll * cosYaw;
+    RbgPrime(0,2) = - cosRoll * sinPitch * sinYaw + sinRoll * cosYaw;
+    RbgPrime(1,0) = cosPitch * cosYaw;
+    RbgPrime(1,1) = sinRoll * sinPitch * cosYaw - cosRoll * sinYaw;
+    RbgPrime(1,2) = cosRoll * sinPitch * cosYaw + sinRoll * sinYaw;
+```
+
+```cpp
+    gPrime(0,3) = dt;
+    gPrime(1,4) = dt;
+    gPrime(2,5) = dt;
+    gPrime(3,6) = (RbgPrime(0) * accel).sum() * dt;
+    gPrime(4,6) = (RbgPrime(1) * accel).sum() * dt;
+    gPrime(5,6) = (RbgPrime(2) * accel).sum() * dt;
+
+    ekfCov = gPrime * ekfCov * gPrime.transpose() + Q;
+```
 
 #### 4. Implementing the magnetometer update
 
